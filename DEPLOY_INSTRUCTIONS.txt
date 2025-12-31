@@ -1,0 +1,147 @@
+================================================================================
+ASSISTANT MEMORIAL EDITION - DEPLOYMENT INSTRUCTIONS
+================================================================================
+
+Your application is ready to deploy! Follow these steps to get it live on Railway.
+
+STEP 1: PREPARE YOUR GITHUB REPOSITORY
+================================================================================
+
+Option A: Create a new GitHub repository
+1. Go to https://github.com/new
+2. Create a new repository named "assistant-revival"
+3. Do NOT initialize with README (we already have one)
+4. Click "Create repository"
+
+Option B: Use an existing repository
+- You can push to any GitHub repository you own
+
+STEP 2: PUSH YOUR CODE TO GITHUB
+================================================================================
+
+From the assistant-revival directory, run:
+
+  git remote add origin https://github.com/YOUR_USERNAME/assistant-revival.git
+  git branch -M main
+  git push -u origin main
+
+Replace YOUR_USERNAME with your actual GitHub username.
+
+STEP 3: DEPLOY TO RAILWAY
+================================================================================
+
+1. Go to https://railway.app
+2. Click "Login" and sign in with GitHub
+3. Click "New Project" button
+4. Select "Deploy from GitHub repo"
+5. Find and select your "assistant-revival" repository
+6. Railway will automatically detect the Node.js project
+7. Click "Deploy"
+
+Railway will now:
+- Clone your repository
+- Install dependencies
+- Build the application
+- Deploy it live
+
+This takes about 2-5 minutes.
+
+STEP 4: CONFIGURE ENVIRONMENT VARIABLES
+================================================================================
+
+Once deployed, you need to set environment variables:
+
+1. In Railway dashboard, click on your project
+2. Go to the "Variables" tab
+3. Add these variables:
+
+   NODE_ENV = production
+   PORT = 5000
+   AI_INTEGRATIONS_OPENAI_API_KEY = [your OpenAI API key]
+   AI_INTEGRATIONS_OPENAI_BASE_URL = https://api.replit.com/openai/v1
+
+4. Click "Save"
+
+The application will automatically redeploy with these variables.
+
+STEP 5: ACCESS YOUR APPLICATION
+================================================================================
+
+After deployment completes:
+
+1. Go to the "Deployments" tab in Railway
+2. You'll see a URL like: https://assistant-revival-production.railway.app
+3. Click the URL to open your application
+4. Your Assistant Memorial Edition is now live!
+
+STEP 6: OPTIONAL - SET UP CUSTOM DOMAIN
+================================================================================
+
+To use your own domain (e.g., assistant.yoursite.com):
+
+1. In Railway, go to "Settings" tab
+2. Click "Custom Domain"
+3. Enter your domain name
+4. Railway will show you DNS records to add
+5. Update your domain's DNS settings
+6. Wait for DNS to propagate (usually 5-30 minutes)
+
+TROUBLESHOOTING
+================================================================================
+
+Build Failed?
+- Check the build logs in Railway dashboard
+- Ensure all dependencies are in package.json
+- Run "npm install && npm run build" locally to test
+
+App Crashes After Deploy?
+- Check environment variables are set correctly
+- View logs in Railway dashboard
+- Ensure OpenAI API key is valid
+
+Can't Access the App?
+- Wait a few minutes for deployment to complete
+- Check that the deployment status is "Success"
+- Clear browser cache and try again
+
+WHAT'S INCLUDED
+================================================================================
+
+Your deployment includes:
+✓ Full React frontend with TypeScript
+✓ Express.js backend with streaming API
+✓ Chat interface with AI responses
+✓ File upload and management
+✓ Diff viewer for code changes
+✓ Checkpoint/rollback system
+✓ Custom prompt creation
+✓ Dark mode with theme toggle
+✓ Responsive design
+
+COSTS
+================================================================================
+
+Railway Free Tier:
+- $5 monthly credit (usually covers small projects)
+- Perfect for personal use
+- No credit card required to start
+
+Paid Plans:
+- Pay-as-you-go pricing
+- Only pay for what you use
+- Scales automatically
+
+SUPPORT
+================================================================================
+
+Railway Documentation: https://railway.app/docs
+Application README: See README.md in the project
+Deployment Guide: See DEPLOYMENT.md in the project
+
+================================================================================
+YOUR APPLICATION IS READY TO DEPLOY!
+
+Follow the steps above and your Assistant Memorial Edition will be live
+in just a few minutes. Enjoy your personal AI coding assistant! 🚀
+
+================================================================================
