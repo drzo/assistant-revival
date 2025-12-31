@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: assistant-revival
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: AI_INTEGRATIONS_OPENAI_API_KEY
+        sync: false
+      - key: AI_INTEGRATIONS_OPENAI_BASE_URL
+        value: https://api.replit.com/openai/v1
+    healthCheckPath: /api/assistant-prompts
