@@ -71,6 +71,11 @@ app.use((req, res, next) => {
   // Seed default assistant prompt
   const { seedDefaultPrompt } = await import("./replit_integrations/assistant-prompts/seed");
   await seedDefaultPrompt();
+  
+  // Seed all assistant prompts from imported data (run once)
+  // Uncomment the following lines to import all prompts:
+  // const { seedAllPrompts } = await import("./replit_integrations/assistant-prompts/seed-all");
+  // await seedAllPrompts();
 
   // start server
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
