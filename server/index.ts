@@ -3,6 +3,8 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { registerChatRoutes } from "./replit_integrations/chat";
+import { registerChatRoutesWithAI } from "./replit_integrations/chat/routes-new";
+import { createProviderManager } from "./ai";
 import { registerImageRoutes } from "./replit_integrations/image";
 import { registerAssistantPromptRoutes } from "./replit_integrations/assistant-prompts";
 
@@ -64,7 +66,20 @@ app.use((req, res, next) => {
 
 (async () => {
   await registerRoutes(httpServer, app);
-  registerChatRoutes(app);
+  
+  // Initialize AI Provider Manager
+  let aiManager;
+  try {
+    aiManager = await createProviderManager();
+    // Use new chat routes with AI manager
+    registerChatRoutesWithAI(app, aiManager);
+  } catch (error) {
+    console.error("Failed to initialize AI provider manager:", error);
+    console.log("Falling back to legacy OpenAI-only routes");
+    // Fallback to old routes if AI manager fails
+    registerChatRoutes(app);
+  }
+  
   registerImageRoutes(app);
   registerAssistantPromptRoutes(app);
 
