@@ -1,0 +1,110 @@
+# December 13, 2024
+
+> Assistant launch, improved Agent, usage updates, and more.
+
+export const AuthorCard = ({img = "https://replit.com/cdn-cgi/image/width=256,quality=80,format=auto/https://storage.googleapis.com/replit/images/1730840970400_e885f16578bbbb227adbfeb7b979be34.jpeg", href = "https://youtube.com/@mattpalmer", name = "Matt Palmer", role = "Head of Developer Relations"}) => {
+  return <a href={href} target="_blank" className="card block not-prose font-normal group relative my-2 ring-2 ring-transparent rounded-xl border border-gray-100 shadow-md dark:shadow-none shadow-gray-300/10 dark:border-gray-800/50 overflow-hidden cursor-pointer hover:!border-primary dark:hover:!border-primary-light">
+      <div className="flex items-center gap-2 p-4">
+        <div className="flex-shrink-0">
+          <img src={img} alt={name} className="w-12 h-12 rounded-full object-cover" />
+        </div>
+        <div className="flex-grow">
+          <h3 className="text-base font-semibold mb-0.5 text-inherit">{name}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 m-0">{role}</p>
+        </div>
+      </div>
+    </a>;
+};
+
+<AuthorCard />
+
+## What's new
+
+* [Assistant Features](#assistant-features)
+* [Rollback with Ease](#rollback-with-ease)
+* [Build Beautiful Apps](#build-beautiful-apps)
+* [Rapid Scraping / Screenshots](#rapid-scraping---screenshots)
+* [Usage Updates You'll Love](#usage-updates-youll-love)
+
+<Frame>
+  <img src="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/assistant-title.jpg?fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=7ac6485f337b7bf1cc8923ff43ca0877" alt="Assistant" data-og-width="3840" width="3840" data-og-height="2160" height="2160" data-path="images/changelog/2024-12-13/assistant-title.jpg" data-optimize="true" data-opv="3" srcset="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/assistant-title.jpg?w=280&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=3e65dadc8ff5dafbe0999f8af120a025 280w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/assistant-title.jpg?w=560&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=f65ba14600dc2965f42077f0ca0fe54b 560w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/assistant-title.jpg?w=840&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=72d10a3ac1ba6cf3c42eb24981482040 840w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/assistant-title.jpg?w=1100&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=8b1e336dadcdbb87ed7859391390e912 1100w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/assistant-title.jpg?w=1650&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=78495a30c08fe840fa8c382d5a8b831b 1650w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/assistant-title.jpg?w=2500&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=bcbcc2bc2cb9cb386b9b74bda6230f22 2500w" />
+</Frame>
+
+This week, we launched Assistant, a new AI tool that allows you to edit multiple files and apply changes directly.
+
+<Note>
+  **Update (December 2025):** Assistant has been deprecated. For quick, targeted edits, use [Fast mode in Agent](/replitai/fast-mode). For discussions and planning, use [Plan mode in Agent](/replitai/plan-mode).
+</Note>
+
+Assistant is optimized for chat and quick edits. Often, we find ourselves creating an MVP with Agent, then performing quick edits with Assistant.
+
+Here are some of our favorite parts of Assistant:
+
+* **Lightweight:** Assistant is optimized for chat and quick edits, now with the ability to edit multiple files and apply changes directly.
+* **Mentions and screenshots:** Mention files or URLs in your prompts. We can scrape the URL or take a screenshot for you.
+* **Rollbacks:** Assistant automatically creates checkpoints, allowing you to easily preview edits as diff and roll back with a single click.
+* **Flexibility:** Assistant works in any Replit App, regardless of the tech stack. Bring your existing projects or start fresh with Agent.
+* **More Beautiful Apps:** Improved support for responsive React apps allows you to create stunning apps.
+* **Billings Updates:** We've removed all usage limits for Agents. We've also increased the credits included in your subscription.
+
+## Platform updates
+
+### Assistant Features
+
+Replit Assistant is a lightweight AI tool built for chat and quick edits. It can edit multiple files and apply them directly on it's own.
+
+We find Assistant excels when you give it context—that might mean specific features, files (mention them with `@file`), or URLs (just paste them in).
+
+Assistant can help you iterate faster and uses about 5x less credits than Agent.
+
+<Frame>
+  <img src="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/2-enter-assistant.webp?fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=044b6c92755383b3869bc44eb7e1e496" alt="Intro to Assistant" data-og-width="600" width="600" data-og-height="338" height="338" data-path="images/changelog/2024-12-13/2-enter-assistant.webp" data-optimize="true" data-opv="3" srcset="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/2-enter-assistant.webp?w=280&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=9c245daa66493682c77bd0b8b9a1fcfa 280w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/2-enter-assistant.webp?w=560&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=37753f35ddbc43e75ec4cd9bf5d3fe31 560w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/2-enter-assistant.webp?w=840&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=57c425e7cede11449c61bfd811965bfa 840w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/2-enter-assistant.webp?w=1100&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=0d103358ea571461bed0ba360b42c296 1100w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/2-enter-assistant.webp?w=1650&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=404f040143de1b81e61afd59a79dea9b 1650w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/2-enter-assistant.webp?w=2500&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=aa1e5c3a25e673e0371c7bc517302eb4 2500w" />
+</Frame>
+
+### Rollback with Ease
+
+Assistant automatically creates checkpoints, allowing you to easily preview edits as diffs and roll back with a single click if anything looks off.
+
+<Frame>
+  <img src="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/5-b-apply.gif?s=85c1490cc0461b8e38ca900cf2b34032" alt="Apply Edits" data-og-width="600" width="600" data-og-height="338" height="338" data-path="images/changelog/2024-12-13/5-b-apply.gif" data-optimize="true" data-opv="3" />
+</Frame>
+
+### Build Beautiful Apps
+
+We've improved support for **React apps**, ensuring your apps appear and function at their best.
+
+<Frame>
+  <img src="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/6-b-react.gif?s=c4043b8055c7ea8fa10188a0d281e016" alt="Beautiful Apps with React" data-og-width="600" width="600" data-og-height="338" height="338" data-path="images/changelog/2024-12-13/6-b-react.gif" data-optimize="true" data-opv="3" />
+</Frame>
+
+### Rapid Scraping / Screenshots
+
+Screenshot or scrape the contents of any site directly into your prompts with **Assistant** or **Agent**.
+
+Simply paste a URL and we'll offer to take a screenshot or scrape the contents of the page.
+
+As always, you can always attach images to your prompts or mention files with `@file`.
+
+<Frame>
+  <img src="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/8-scrape.gif?s=082fa80fd1c1fc01f0cc5747c93e43ce" alt="Scraping" data-og-width="600" width="600" data-og-height="338" height="338" data-path="images/changelog/2024-12-13/8-scrape.gif" data-optimize="true" data-opv="3" />
+</Frame>
+
+### Usage Updates You’ll Love
+
+* **No More Usage Quotas:** Say goodbye to limits for Agent usage.
+* **More Credits for Subscribers:** Core subscribers now receive increased credits.
+
+<Frame>
+  <img src="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing.png?fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=99d1282fb2f89faceb5f1ad090ff5f72" alt="Billing" data-og-width="2514" width="2514" data-og-height="1308" height="1308" data-path="images/changelog/2024-12-13/billing.png" data-optimize="true" data-opv="3" srcset="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing.png?w=280&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=4dfa60c2c5a855dd1af8695fc0aadf8d 280w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing.png?w=560&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=9ec65c87d605451d9396ead982a22353 560w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing.png?w=840&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=005c953ea9646da21f88ea5ecab8ca7a 840w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing.png?w=1100&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=fb1a99d3f688b66e8837735fe414a6b7 1100w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing.png?w=1650&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=57d1d2f39e63cedad5e39220d71639f1 1650w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing.png?w=2500&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=d6ab2b5efea5ab42677f2b58d188c2ec 2500w" />
+</Frame>
+
+We're also introducing billing tools to allow you to monitor and limit your spend. Head over to the "usage" tab in Replit to see your usage and set limits.
+
+<Frame>
+  <img src="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing-1.png?fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=410fa8d35bb93057d6b777a64d6695af" alt="Billing" data-og-width="4305" width="4305" data-og-height="2421" height="2421" data-path="images/changelog/2024-12-13/billing-1.png" data-optimize="true" data-opv="3" srcset="https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing-1.png?w=280&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=03a61539469aad627246778ed5a00b81 280w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing-1.png?w=560&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=d0f9681944b5204ff617288f79d7ba67 560w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing-1.png?w=840&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=b42c7180e6f79b1809d2cd9620290bdf 840w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing-1.png?w=1100&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=b28533702c4f723dd10bed59a306265a 1100w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing-1.png?w=1650&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=9f16da6261f1b3a20c7654dcf80b12e0 1650w, https://mintcdn.com/replit/-6g2hQCrMskerX65/images/changelog/2024-12-13/billing-1.png?w=2500&fit=max&auto=format&n=-6g2hQCrMskerX65&q=85&s=7a68a1d42c8d3b694585ae6697b6cd10 2500w" />
+</Frame>
+
+
+---
+
+> To find navigation and other pages in this documentation, fetch the llms.txt file at: https://docs.replit.com/llms.txt
