@@ -1,0 +1,2 @@
+
+export { registerPackageManagerRoutes } from './routes';

@@ -10,6 +10,8 @@ import { registerFileOperationsRoutes } from "./replit_integrations/file-operati
 import { registerDeploymentRoutes } from "./replit_integrations/deployment";
 import { registerWorkflowRoutes } from "./replit_integrations/workflow";
 import localLLMRoutes from "./replit_integrations/local-llm/routes";
+import { registerPackageManagerRoutes } from "./replit_integrations/package-manager/routes";
+import { registerWorkspaceToolRoutes } from "./replit_integrations/workspace-tools/routes";
 import { getAgent } from "./replit_integrations/mastra/config";
 
 const openai = new OpenAI({
@@ -255,6 +257,8 @@ export async function registerRoutes(
   registerWorkflowRoutes(app);
   registerShellRoutes(app);
   app.use("/api/local-llm", localLLMRoutes);
+  registerPackageManagerRoutes(app);
+  registerWorkspaceToolRoutes(app);
 
   return httpServer;
 }

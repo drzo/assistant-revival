@@ -1,0 +1,2 @@
+
+export { registerWorkspaceToolRoutes } from './routes';
