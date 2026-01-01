@@ -13,29 +13,35 @@ export interface IChatStorage {
 
 export const chatStorage: IChatStorage = {
   async getConversation(id: number) {
+    if (!db) throw new Error('Database not initialized');
     const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
     return conversation;
   },
 
   async getAllConversations() {
+    if (!db) throw new Error('Database not initialized');
     return db.select().from(conversations).orderBy(desc(conversations.createdAt));
   },
 
   async createConversation(title: string) {
+    if (!db) throw new Error('Database not initialized');
     const [conversation] = await db.insert(conversations).values({ title }).returning();
     return conversation;
   },
 
   async deleteConversation(id: number) {
+    if (!db) throw new Error('Database not initialized');
     await db.delete(messages).where(eq(messages.conversationId, id));
     await db.delete(conversations).where(eq(conversations.id, id));
   },
 
   async getMessagesByConversation(conversationId: number) {
+    if (!db) throw new Error('Database not initialized');
     return db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(messages.createdAt);
   },
 
   async createMessage(conversationId: number, role: string, content: string) {
+    if (!db) throw new Error('Database not initialized');
     const [message] = await db.insert(messages).values({ conversationId, role, content }).returning();
     return message;
   },

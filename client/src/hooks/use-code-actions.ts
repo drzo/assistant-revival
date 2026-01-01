@@ -287,11 +287,12 @@ export function useCodeActions() {
     }
   };
 
-  const restartWorkflow = async () => {
+  const restartWorkflow = async (workflowName?: string) => {
     try {
       const response = await fetch('/api/workflow/restart', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflowName })
       });
 
       if (!response.ok) {
@@ -300,11 +301,37 @@ export function useCodeActions() {
 
       toast({
         title: 'Workflow restarted',
-        description: 'Application has been restarted',
+        description: workflowName ? `Workflow "${workflowName}" restarted` : 'Application has been restarted',
       });
     } catch (error) {
       toast({
         title: 'Restart failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const stopWorkflow = async (workflowName?: string) => {
+    try {
+      const response = await fetch('/api/workflow/stop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflowName })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to stop workflow');
+      }
+
+      toast({
+        title: 'Workflow stopped',
+        description: workflowName ? `Workflow "${workflowName}" stopped` : 'Workflow has been stopped',
+      });
+    } catch (error) {
+      toast({
+        title: 'Stop failed',
         description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
@@ -321,17 +348,21 @@ export function useCodeActions() {
     }
   };
 
-  const configureWorkflow = async (workflow: {
-    workflowName: string;
-    commands: string[];
-    setRunButton?: boolean;
-    mode?: 'sequential' | 'parallel';
-  }) => {
+  const configureWorkflow = async (
+    currentName: string,
+    newName: string,
+    commands: string,
+    mode?: 'sequential' | 'parallel'
+  ) => {
     try {
       const response = await fetch('/api/workflow/configure', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(workflow)
+        body: JSON.stringify({
+          workflowName: newName || currentName,
+          commands: commands.split(',').map(c => c.trim()).filter(Boolean),
+          mode,
+        })
       });
 
       if (!response.ok) {
@@ -342,7 +373,7 @@ export function useCodeActions() {
 
       toast({
         title: 'Workflow configured',
-        description: `Workflow "${workflow.workflowName}" has been configured`,
+        description: `Workflow "${newName || currentName}" has been configured`,
       });
 
       return result;
@@ -438,6 +469,7 @@ export function useCodeActions() {
     handleScreenshot,
     handleScrape,
     restartWorkflow,
+    stopWorkflow,
     installPackage,
     configureWorkflow,
     configureDeployment,

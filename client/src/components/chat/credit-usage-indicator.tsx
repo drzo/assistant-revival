@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Coins, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useAssistantStore } from '@/stores/assistant';
+import { useAssistantStore } from '@/hooks/use-assistant-store';
 
 interface CreditUsage {
   used: number;
