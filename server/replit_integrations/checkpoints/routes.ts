@@ -53,3 +53,4 @@ router.delete("/checkpoint/:id", async (req, res) => {
 });
 
 export default router;
+export const registerCheckpointRoutes = router;

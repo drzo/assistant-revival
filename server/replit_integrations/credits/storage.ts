@@ -12,32 +12,31 @@ export interface IEditRequestStorage {
 export const editRequestStorage: IEditRequestStorage = {
   async recordEditRequest(userId: string, cost: number) {
     if (!db) return;
-    
+
     await db.insert(creditUsage).values({
       userId,
-      operation: 'edit_request',
+      action: 'edit_request',
       creditsUsed: cost,
-      timestamp: new Date(),
     });
   },
 
   async getMonthlyUsage(userId: string) {
     if (!db) return 0;
-    
+
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
-    
+
     const [result] = await db
       .select({ total: sql<number>`sum(${creditUsage.creditsUsed})` })
       .from(creditUsage)
       .where(
         and(
           eq(creditUsage.userId, userId),
-          gte(creditUsage.timestamp, startOfMonth)
+          gte(creditUsage.createdAt, startOfMonth)
         )
       );
-    
+
     return result?.total || 0;
   },
 

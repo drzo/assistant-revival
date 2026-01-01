@@ -61,7 +61,12 @@ export function ChatMessage({ message, onFileClick, onCodeChangeProposed }: Chat
 
   const handleConfigureWorkflow = async (workflow: any) => {
     try {
-      await configureWorkflow(workflow);
+      await configureWorkflow(
+        workflow.workflowName || '',
+        workflow.newName || workflow.workflowName || '',
+        Array.isArray(workflow.commands) ? workflow.commands.join(',') : (workflow.commands || ''),
+        workflow.mode
+      );
       toast({
         title: "Workflow configured",
         description: `Workflow "${workflow.workflowName}" has been set up`,

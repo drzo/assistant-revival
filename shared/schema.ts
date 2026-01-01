@@ -75,26 +75,20 @@ export const userSchema = z.object({
 export type User = z.infer<typeof userSchema>;
 export type InsertUser = Omit<User, "id">;
 
-// Assistant prompt schema
+// Assistant prompt schema (matches database schema)
 export const assistantPromptSchema = z.object({
-  id: z.string(),
+  id: z.number(),
   name: z.string(),
-  description: z.string(),
   instructions: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  isDefault: z.boolean(),
+  createdAt: z.union([z.string(), z.date()]),
+  updatedAt: z.union([z.string(), z.date()]),
 });
 
 export type AssistantPrompt = z.infer<typeof assistantPromptSchema>;
 export type InsertAssistantPrompt = Omit<AssistantPrompt, "id" | "createdAt" | "updatedAt">;
 
-// Re-export all tables from models
-export * from "./models/chat";
-export * from "./models/assistant-prompt";
-export * from "./models/org-persona-ext";
-export * from "./models/credit-usage";
-
-// Import for convenience
+// Import table definitions from models
 import { conversations, messages } from "./models/chat";
 import { assistantPrompts } from "./models/assistant-prompt";
 import {
@@ -108,6 +102,31 @@ import {
   orgNetworkTopology,
 } from "./models/org-persona-ext";
 import { creditUsage } from "./models/credit-usage";
+
+// Re-export table definitions (but not conflicting types)
+export { conversations, messages } from "./models/chat";
+export { assistantPrompts } from "./models/assistant-prompt";
+export {
+  orgParticipants,
+  orgHyperedges,
+  orgMemory,
+  orgArtifacts,
+  orgPersona,
+  orgBehaviorHistory,
+  orgSkillsets,
+  orgNetworkTopology,
+} from "./models/org-persona-ext";
+export { creditUsage } from "./models/credit-usage";
+
+// Export insert schemas from models
+export type { InsertConversation, InsertMessage as InsertChatMessage } from "./models/chat";
+export type { InsertAssistantPrompt as InsertDbAssistantPrompt } from "./models/assistant-prompt";
+export type { InsertCreditUsage } from "./models/credit-usage";
+
+// Database types (with Db prefix to avoid conflicts with local types)
+export type DbConversation = typeof conversations.$inferSelect;
+export type DbMessage = typeof messages.$inferSelect;
+export type DbAssistantPrompt = typeof assistantPrompts.$inferSelect;
 
 // Export combined schema object for Drizzle
 export const schema = {
@@ -125,7 +144,8 @@ export const schema = {
   creditUsage,
 };
 
-export interface Message {
+// Local/client-side types (these use string IDs for client state)
+export interface ClientMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
@@ -141,14 +161,14 @@ export interface Message {
   };
 }
 
-export interface Session {
+export interface ClientSession {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Checkpoint {
+export interface ClientCheckpoint {
   id: string;
   sessionId: string;
   messageId: string;
@@ -167,35 +187,15 @@ export interface CodeFile {
   updatedAt?: string;
 }
 
-export interface CodeChange {
-  id: string;
+export interface ClientCodeChange {
+  id?: string;
   fileId: string;
   fileName: string;
   oldContent: string;
   newContent: string;
-  description: string;
+  description?: string;
 }
 
-export interface AssistantPrompt {
-  id: number;
-  name: string;
-  instructions: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Conversation {
-  id: number;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ChatMessage {
-  id: number;
-  conversationId: number;
-  role: "user" | "assistant";
-  content: string;
-  createdAt: string;
-}
+// Legacy type aliases (for backwards compatibility)
+export type Conversation = DbConversation;
+export type ChatMessage = DbMessage;

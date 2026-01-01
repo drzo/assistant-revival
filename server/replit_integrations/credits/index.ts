@@ -12,10 +12,12 @@ export const CREDIT_COSTS = {
 };
 
 export async function trackCreditUsage(data: InsertCreditUsage): Promise<void> {
+  if (!db) throw new Error('Database not initialized');
   await db.insert(creditUsage).values(data);
 }
 
 export async function getUserCreditUsage(userId: string, days: number = 30): Promise<number> {
+  if (!db) return 0;
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
@@ -31,6 +33,7 @@ export async function getUserCreditUsage(userId: string, days: number = 30): Pro
 }
 
 export async function getCreditHistory(userId: string, limit: number = 50) {
+  if (!db) return [];
   return db
     .select()
     .from(creditUsage)

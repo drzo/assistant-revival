@@ -172,7 +172,8 @@ export const orgPersonaStorage: IOrgPersonaStorage = {
       const edge = {
         id: nextHyperedgeId++,
         ...data,
-        createdAt: new Date(),
+        weight: data.weight ?? 1,
+        timestamp: new Date(),
       } as typeof orgHyperedges.$inferSelect;
       inMemoryHyperedges.set(edge.id, edge);
       return edge;

@@ -1,3 +1,5 @@
+import type { Express } from "express";
+
 export {
   batchProcess,
   batchProcessWithSSE,
@@ -6,7 +8,7 @@ export {
 } from "./utils";
 
 // Re-export routes if needed
-export function registerBatchRoutes() {
+export function registerBatchRoutes(_app: Express) {
   // Placeholder for batch routes if needed in the future
 }
 

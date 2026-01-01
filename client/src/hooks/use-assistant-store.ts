@@ -5,6 +5,7 @@ import type { File, Message, Session, Checkpoint, CodeChange } from "@shared/sch
 interface AssistantSettings {
   autoApplyChanges: boolean;
   autoRestartWorkflow: boolean;
+  mode: 'basic' | 'advanced';
 }
 
 interface AssistantState {
@@ -59,6 +60,7 @@ export const useAssistantStore = create<AssistantState>()(
       settings: {
         autoApplyChanges: false,
         autoRestartWorkflow: true,
+        mode: 'basic',
       },
 
       get messages() {
@@ -175,8 +177,7 @@ export const useAssistantStore = create<AssistantState>()(
             content: change.newContent,
             size: change.newContent.length,
             language: change.fileName.split('.').pop() || 'plaintext',
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            uploadedAt: new Date().toISOString(),
           }));
         
         set({ 
