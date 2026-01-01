@@ -58,7 +58,7 @@ export function CheckpointList({ checkpoints, currentCheckpointId, onRestore }: 
                   <div className="w-px h-full bg-border mt-1" />
                 )}
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium truncate">

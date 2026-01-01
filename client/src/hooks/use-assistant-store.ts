@@ -2,6 +2,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { File, Message, Session, Checkpoint, CodeChange } from "@shared/schema";
 
+interface AssistantSettings {
+  autoApplyChanges: boolean;
+  autoRestartWorkflow: boolean;
+}
+
 interface AssistantState {
   sessions: Session[];
   currentSessionId: string | null;
@@ -11,31 +16,33 @@ interface AssistantState {
   pendingChanges: CodeChange[];
   isLoading: boolean;
   isStreaming: boolean;
-  
+  settings: AssistantSettings;
+
   messages: Message[];
-  
+
   setCurrentSession: (sessionId: string | null) => void;
   addSession: (session: Session) => void;
   deleteSession: (sessionId: string) => void;
-  
+
   addMessage: (message: Message) => void;
   updateMessage: (id: string, updates: Partial<Message>) => void;
   clearMessages: () => void;
-  
+
   addFile: (file: File) => void;
   removeFile: (fileId: string) => void;
   updateFileContent: (fileId: string, content: string) => void;
   clearFiles: () => void;
-  
+
   addCheckpoint: (checkpoint: Checkpoint) => void;
   restoreCheckpoint: (checkpointId: string) => void;
-  
+
   setPendingChanges: (changes: CodeChange[]) => void;
   applyPendingChanges: () => void;
   clearPendingChanges: () => void;
-  
+
   setLoading: (loading: boolean) => void;
   setStreaming: (streaming: boolean) => void;
+  updateSettings: (settings: Partial<AssistantSettings>) => void;
 }
 
 export const useAssistantStore = create<AssistantState>()(
@@ -49,6 +56,10 @@ export const useAssistantStore = create<AssistantState>()(
       pendingChanges: [],
       isLoading: false,
       isStreaming: false,
+      settings: {
+        autoApplyChanges: false,
+        autoRestartWorkflow: true,
+      },
 
       get messages() {
         const state = get();
@@ -57,7 +68,7 @@ export const useAssistantStore = create<AssistantState>()(
       },
 
       setCurrentSession: (sessionId) => set({ currentSessionId: sessionId }),
-      
+
       addSession: (session) => set((state) => ({ 
         sessions: [session, ...state.sessions],
         currentSessionId: session.id,
@@ -66,7 +77,7 @@ export const useAssistantStore = create<AssistantState>()(
           [session.id]: [],
         },
       })),
-      
+
       deleteSession: (sessionId) => set((state) => {
         const { [sessionId]: _, ...remainingMessages } = state.sessionMessages;
         return {
@@ -87,7 +98,7 @@ export const useAssistantStore = create<AssistantState>()(
           },
         };
       }),
-      
+
       updateMessage: (id, updates) => set((state) => {
         if (!state.currentSessionId) return state;
         const currentMessages = state.sessionMessages[state.currentSessionId] || [];
@@ -100,7 +111,7 @@ export const useAssistantStore = create<AssistantState>()(
           },
         };
       }),
-      
+
       clearMessages: () => set((state) => {
         if (!state.currentSessionId) return state;
         return {
@@ -114,23 +125,23 @@ export const useAssistantStore = create<AssistantState>()(
       addFile: (file) => set((state) => ({
         files: [...state.files, file],
       })),
-      
+
       removeFile: (fileId) => set((state) => ({
         files: state.files.filter((f) => f.id !== fileId),
       })),
-      
+
       updateFileContent: (fileId, content) => set((state) => ({
         files: state.files.map((f) => 
           f.id === fileId ? { ...f, content, size: content.length } : f
         ),
       })),
-      
+
       clearFiles: () => set({ files: [] }),
 
       addCheckpoint: (checkpoint) => set((state) => ({
         checkpoints: [...state.checkpoints, checkpoint],
       })),
-      
+
       restoreCheckpoint: (checkpointId) => {
         const state = get();
         const checkpoint = state.checkpoints.find((c) => c.id === checkpointId);
@@ -140,23 +151,48 @@ export const useAssistantStore = create<AssistantState>()(
       },
 
       setPendingChanges: (changes) => set({ pendingChanges: changes }),
-      
+
       applyPendingChanges: () => {
         const state = get();
+        
+        if (state.pendingChanges.length === 0) return;
+        
+        // Apply all pending changes to files
         const updatedFiles = state.files.map((file) => {
-          const change = state.pendingChanges.find((c) => c.fileId === file.id);
+          const change = state.pendingChanges.find((c) => c.fileId === file.id || c.fileName === file.name);
           if (change) {
             return { ...file, content: change.newContent, size: change.newContent.length };
           }
           return file;
         });
-        set({ files: updatedFiles, pendingChanges: [] });
+        
+        // Create new files if they don't exist
+        const newFiles = state.pendingChanges
+          .filter(change => !state.files.some(f => f.id === change.fileId || f.name === change.fileName))
+          .map(change => ({
+            id: change.fileId || `file-${Date.now()}-${Math.random()}`,
+            name: change.fileName,
+            content: change.newContent,
+            size: change.newContent.length,
+            language: change.fileName.split('.').pop() || 'plaintext',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }));
+        
+        set({ 
+          files: [...updatedFiles, ...newFiles], 
+          pendingChanges: [] 
+        });
       },
-      
+
       clearPendingChanges: () => set({ pendingChanges: [] }),
 
       setLoading: (loading) => set({ isLoading: loading }),
       setStreaming: (streaming) => set({ isStreaming: streaming }),
+      updateSettings: (newSettings) =>
+        set((state) => ({
+          settings: { ...state.settings, ...newSettings },
+        })),
     }),
     {
       name: "assistant-memorial-storage",
@@ -166,6 +202,7 @@ export const useAssistantStore = create<AssistantState>()(
         files: state.files,
         checkpoints: state.checkpoints,
         currentSessionId: state.currentSessionId,
+        settings: state.settings,
       }),
     }
   )

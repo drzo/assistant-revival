@@ -21,9 +21,9 @@ import type { AssistantPrompt } from "@shared/schema";
 interface PromptManagerProps {
   prompts: AssistantPrompt[];
   onCreatePrompt: (name: string, instructions: string) => Promise<void>;
-  onUpdatePrompt: (id: string, name: string, instructions: string) => Promise<void>;
-  onDeletePrompt: (id: string) => Promise<void>;
-  onSetDefault: (id: string) => Promise<void>;
+  onUpdatePrompt: (id: number, name: string, instructions: string) => Promise<void>;
+  onDeletePrompt: (id: number) => Promise<void>;
+  onSetDefault: (id: number) => Promise<void>;
 }
 
 export function PromptManager({
@@ -34,7 +34,7 @@ export function PromptManager({
   onSetDefault,
 }: PromptManagerProps) {
   const [open, setOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
   const { toast } = useToast();
@@ -177,10 +177,9 @@ export function PromptManager({
                         "p-3 rounded-md border cursor-pointer hover:bg-accent",
                         editingId === prompt.id && "bg-accent"
                       )}
-                      onClick={() => handleEdit(prompt)}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
+                        <div className="flex-1" onClick={() => handleEdit(prompt)}>
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">{prompt.name}</span>
                             {prompt.isDefault && (

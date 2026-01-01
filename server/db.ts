@@ -1,105 +1,96 @@
-/**
- * In-memory database module for Assistant Memorial Edition
- * This provides a lightweight storage solution for assistant prompts
- */
 
-import type { AssistantPrompt } from "@shared/schema";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { schema } from '@shared/schema';
 
-interface PromptRecord extends AssistantPrompt {
-  id: string;
+let client: ReturnType<typeof postgres> | null = null;
+let dbInstance: ReturnType<typeof drizzle> | null = null;
+let dbAvailable = false;
+
+export let db: ReturnType<typeof drizzle> | null = null;
+
+function isValidDatabaseUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname;
+    
+    // Skip dev-only hostnames that won't resolve in production
+    if (hostname === 'helium' || hostname === 'localhost') {
+      if (process.env.NODE_ENV === 'production') {
+        console.log(`Skipping database - hostname '${hostname}' not available in production`);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-let prompts: Map<string, PromptRecord> = new Map();
-let nextId = 1;
-
-export const db = {
-  // Assistant Prompts
-  getPrompt: async (id: string): Promise<PromptRecord | undefined> => {
-    return prompts.get(id);
-  },
-
-  getAllPrompts: async (): Promise<PromptRecord[]> => {
-    return Array.from(prompts.values());
-  },
-
-  getDefaultPrompt: async (): Promise<PromptRecord | undefined> => {
-    for (const prompt of Array.from(prompts.values())) {
-      if (prompt.isDefault) {
-        return prompt;
+export async function initializeDatabase() {
+  const connectionString = process.env.DATABASE_URL;
+  
+  if (!isValidDatabaseUrl(connectionString)) {
+    console.log('No valid DATABASE_URL configured - using in-memory storage');
+    return;
+  }
+  
+  try {
+    console.log('Attempting database connection...');
+    
+    // Create connection with short timeout to fail fast
+    client = postgres(connectionString!, {
+      connect_timeout: 5,
+      idle_timeout: 20,
+      max_lifetime: 60 * 30,
+    });
+    
+    // Test the connection with a simple query
+    const testResult = await Promise.race([
+      client`SELECT 1 as test`,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection timeout')), 5000)
+      )
+    ]);
+    
+    if (!testResult) {
+      throw new Error('Database connection test failed');
+    }
+    
+    console.log('Database connection successful');
+    dbInstance = drizzle(client, { schema });
+    db = dbInstance;
+    dbAvailable = true;
+    
+    // Run migrations
+    console.log('Running migrations...');
+    await migrate(db, { migrationsFolder: './migrations' });
+    console.log('Database initialized successfully');
+    
+  } catch (error: any) {
+    console.warn('Database initialization failed - using in-memory storage');
+    console.warn('Error:', error?.message || error);
+    
+    // Clean up any partial connection
+    if (client) {
+      try {
+        await client.end();
+      } catch (e) {
+        // Ignore cleanup errors
       }
+      client = null;
     }
-    return undefined;
-  },
+    
+    dbInstance = null;
+    db = null;
+    dbAvailable = false;
+  }
+}
 
-  createPrompt: async (
-    name: string,
-    instructions: string,
-    isDefault: boolean = false
-  ): Promise<PromptRecord> => {
-    const id = String(nextId++);
-    const now = new Date().toISOString();
-
-    // If this is being set as default, unset all others
-    if (isDefault) {
-      for (const prompt of Array.from(prompts.values())) {
-        prompt.isDefault = false;
-      }
-    }
-
-    const prompt: PromptRecord = {
-      id,
-      name,
-      instructions,
-      description: "",
-      isDefault,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    prompts.set(id, prompt);
-    return prompt;
-  },
-
-  updatePrompt: async (
-    id: string,
-    name?: string,
-    instructions?: string,
-    isDefault?: boolean
-  ): Promise<PromptRecord | undefined> => {
-    const prompt = prompts.get(id);
-    if (!prompt) return undefined;
-
-    if (name !== undefined) prompt.name = name;
-    if (instructions !== undefined) prompt.instructions = instructions;
-    if (isDefault !== undefined) {
-      if (isDefault) {
-        // Unset all others
-        for (const p of Array.from(prompts.values())) {
-          p.isDefault = false;
-        }
-      }
-      prompt.isDefault = isDefault;
-    }
-
-    prompt.updatedAt = new Date().toISOString();
-    prompts.set(id, prompt);
-    return prompt;
-  },
-
-  deletePrompt: async (id: string): Promise<void> => {
-    prompts.delete(id);
-  },
-
-  setDefaultPrompt: async (id: string): Promise<void> => {
-    // Unset all others
-    for (const prompt of Array.from(prompts.values())) {
-      prompt.isDefault = false;
-    }
-
-    const prompt = prompts.get(id);
-    if (prompt) {
-      prompt.isDefault = true;
-      prompt.updatedAt = new Date().toISOString();
-    }
-  },
-};
+export function isDatabaseAvailable() {
+  return dbAvailable;
+}

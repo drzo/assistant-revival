@@ -1,92 +1,43 @@
-/**
- * In-memory chat storage for Assistant Memorial Edition
- */
-
-interface Conversation {
-  id: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Message {
-  id: string;
-  conversationId: string;
-  role: string;
-  content: string;
-  createdAt: string;
-}
-
-let conversations = new Map<string, Conversation>();
-let messages = new Map<string, Message[]>();
-let conversationCounter = 0;
-let messageCounter = 0;
+import { db } from "../../db";
+import { conversations, messages } from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
 
 export interface IChatStorage {
-  getConversation(id: string): Promise<Conversation | undefined>;
-  getAllConversations(): Promise<Conversation[]>;
-  createConversation(title: string): Promise<Conversation>;
-  deleteConversation(id: string): Promise<void>;
-  getMessagesByConversation(conversationId: string): Promise<Message[]>;
-  createMessage(conversationId: string, role: string, content: string): Promise<Message>;
+  getConversation(id: number): Promise<typeof conversations.$inferSelect | undefined>;
+  getAllConversations(): Promise<(typeof conversations.$inferSelect)[]>;
+  createConversation(title: string): Promise<typeof conversations.$inferSelect>;
+  deleteConversation(id: number): Promise<void>;
+  getMessagesByConversation(conversationId: number): Promise<(typeof messages.$inferSelect)[]>;
+  createMessage(conversationId: number, role: string, content: string): Promise<typeof messages.$inferSelect>;
 }
 
 export const chatStorage: IChatStorage = {
-  async getConversation(id: string) {
-    return conversations.get(id);
-  },
-
-  async getAllConversations() {
-    return Array.from(conversations.values()).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  },
-
-  async createConversation(title: string) {
-    const id = String(conversationCounter++);
-    const now = new Date().toISOString();
-    const conversation: Conversation = {
-      id,
-      title,
-      createdAt: now,
-      updatedAt: now,
-    };
-    conversations.set(id, conversation);
-    messages.set(id, []);
+  async getConversation(id: number) {
+    const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
     return conversation;
   },
 
-  async deleteConversation(id: string) {
-    conversations.delete(id);
-    messages.delete(id);
+  async getAllConversations() {
+    return db.select().from(conversations).orderBy(desc(conversations.createdAt));
   },
 
-  async getMessagesByConversation(conversationId: string) {
-    return messages.get(conversationId) || [];
+  async createConversation(title: string) {
+    const [conversation] = await db.insert(conversations).values({ title }).returning();
+    return conversation;
   },
 
-  async createMessage(conversationId: string, role: string, content: string) {
-    const id = String(messageCounter++);
-    const now = new Date().toISOString();
-    const message: Message = {
-      id,
-      conversationId,
-      role,
-      content,
-      createdAt: now,
-    };
-    
-    const conversationMessages = messages.get(conversationId) || [];
-    conversationMessages.push(message);
-    messages.set(conversationId, conversationMessages);
-    
-    // Update conversation updatedAt
-    const conversation = conversations.get(conversationId);
-    if (conversation) {
-      conversation.updatedAt = now;
-      conversations.set(conversationId, conversation);
-    }
-    
+  async deleteConversation(id: number) {
+    await db.delete(messages).where(eq(messages.conversationId, id));
+    await db.delete(conversations).where(eq(conversations.id, id));
+  },
+
+  async getMessagesByConversation(conversationId: number) {
+    return db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(messages.createdAt);
+  },
+
+  async createMessage(conversationId: number, role: string, content: string) {
+    const [message] = await db.insert(messages).values({ conversationId, role, content }).returning();
     return message;
   },
 };
+

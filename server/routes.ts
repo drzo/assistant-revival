@@ -1,7 +1,15 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import OpenAI from "openai";
 import { storage } from "./storage";
+import { registerImageRoutes } from "./replit_integrations/image";
+import { registerScreenshotRoutes } from "./replit_integrations/screenshot";
+import { registerScrapingRoutes } from "./replit_integrations/scraping";
+import { registerShellRoutes } from "./replit_integrations/shell";
+import { registerFileOperationsRoutes } from "./replit_integrations/file-operations";
+import { registerDeploymentRoutes } from "./replit_integrations/deployment";
+import { registerWorkflowRoutes } from "./replit_integrations/workflow";
+import { getAgent } from "./replit_integrations/mastra/config";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -28,7 +36,7 @@ export async function registerRoutes(
   // Chat endpoint with streaming
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, files } = req.body;
+      const { message, files, agentName } = req.body;
 
       if (!message) {
         return res.status(400).json({ error: "Message is required" });
@@ -37,7 +45,7 @@ export async function registerRoutes(
       // Build context from files
       let contextMessage = message;
       if (files && files.length > 0) {
-        const fileContexts = files.map((file: { name: string; content: string; language: string }) => 
+        const fileContexts = files.map((file: { name: string; content: string; language: string }) =>
           `File: ${file.name}\n\`\`\`${file.language}\n${file.content}\n\`\`\``
         ).join("\n\n");
         contextMessage = `${fileContexts}\n\nUser request: ${message}`;
@@ -48,13 +56,41 @@ export async function registerRoutes(
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
+      // Check if using a Mastra agent (non-assistant agents)
+      if (agentName && agentName !== 'assistantAgent') {
+        try {
+          console.log(`Using Mastra agent: ${agentName}`);
+          const agent = getAgent(agentName);
+          const result = await agent.generate(contextMessage);
+          
+          const fullResponse = result?.text || '';
+          console.log(`Mastra agent response length: ${fullResponse.length}`);
+          
+          if (fullResponse) {
+            res.write(`data: ${JSON.stringify({ content: fullResponse })}\n\n`);
+            
+            const codeChanges = parseCodeChanges(fullResponse, files);
+            if (codeChanges.length > 0) {
+              res.write(`data: ${JSON.stringify({ codeChanges })}\n\n`);
+            }
+            
+            res.write(`data: ${JSON.stringify({ done: true, agentName })}\n\n`);
+            res.end();
+            return;
+          }
+          console.log("Mastra agent returned empty response, falling back to OpenAI");
+        } catch (agentError) {
+          console.error("Mastra agent error, falling back to OpenAI:", agentError);
+        }
+      }
+
       let systemPrompt = SYSTEM_PROMPT;
       if (req.body.systemPrompt) {
         systemPrompt = req.body.systemPrompt;
       }
 
       const stream = await openai.chat.completions.create({
-        model: "gpt-4.1-mini",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: contextMessage },
@@ -207,6 +243,17 @@ export async function registerRoutes(
     }
   });
 
+  // Replit integrations routes
+  // In a real application, you might want to use express.Router() for better organization
+  // and then mount the router here. For simplicity, we're registering routes directly.
+  registerImageRoutes(app);
+  registerScreenshotRoutes(app);
+  registerScrapingRoutes(app);
+  registerFileOperationsRoutes(app);
+  registerDeploymentRoutes(app);
+  registerWorkflowRoutes(app);
+  registerShellRoutes(app);
+
   return httpServer;
 }
 
@@ -231,7 +278,7 @@ function parseCodeChanges(response: string, files: Array<{ id: string; name: str
 
     // Try to match code blocks to existing files by language or content similarity
     for (const file of files) {
-      if (file.language === language || 
+      if (file.language === language ||
           response.toLowerCase().includes(file.name.toLowerCase())) {
         // Check if this looks like a full file replacement or significant edit
         if (code.length > 50 && code !== file.content) {

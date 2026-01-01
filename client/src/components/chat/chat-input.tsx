@@ -9,14 +9,15 @@ import {
 } from "@/components/ui/popover";
 import { useAssistantStore } from "@/hooks/use-assistant-store";
 import { cn } from "@/lib/utils";
+import { parseFileMentions } from "@/lib/mention-parser";
 
 interface ChatInputProps {
-  onSend: (message: string, mentionedFiles: string[]) => void;
+  onSendMessage: (message: string, mentionedFiles: string[], systemPrompt?: string) => void;
   onFileUpload: () => void;
   disabled?: boolean;
 }
 
-export function ChatInput({ onSend, onFileUpload, disabled }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onFileUpload, disabled }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [mentionedFiles, setMentionedFiles] = useState<string[]>([]);
   const [showFilePicker, setShowFilePicker] = useState(false);
@@ -26,10 +27,15 @@ export function ChatInput({ onSend, onFileUpload, disabled }: ChatInputProps) {
 
   const handleSend = useCallback(() => {
     if (!message.trim() || disabled || isStreaming) return;
-    onSend(message.trim(), mentionedFiles);
+    
+    // Parse @ mentions from message
+    const { mentionedFileIds } = parseFileMentions(message, files);
+    const allMentionedFiles = Array.from(new Set([...mentionedFiles, ...mentionedFileIds]));
+    
+    onSendMessage(message.trim(), allMentionedFiles);
     setMessage("");
     setMentionedFiles([]);
-  }, [message, mentionedFiles, disabled, isStreaming, onSend]);
+  }, [message, mentionedFiles, disabled, isStreaming, onSendMessage, files]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -62,50 +68,27 @@ export function ChatInput({ onSend, onFileUpload, disabled }: ChatInputProps) {
   const isDisabled = disabled || isStreaming;
 
   return (
-    <div className="border-t border-border bg-background p-4">
-      {mentionedFiles.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
-          {mentionedFiles.map((fileId) => {
-            const file = files.find((f) => f.id === fileId);
-            return (
-              <span
-                key={fileId}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent text-accent-foreground text-xs"
-              >
-                @{file?.name || fileId}
-                <button
-                  onClick={() => removeFileMention(fileId)}
-                  className="hover:text-destructive ml-1"
-                  data-testid={`button-remove-mention-${fileId}`}
-                >
-                  x
-                </button>
-              </span>
-            );
-          })}
-        </div>
-      )}
-      
-      <div className="flex items-end gap-2">
+    <div className="border-t border-border bg-background px-4 py-3">
+      <div className="flex items-start gap-2 max-w-4xl mx-auto">
         <div className="relative flex-1">
           <Textarea
             ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask Assistant anything... (use @ to mention files)"
-            className="min-h-[44px] max-h-40 resize-none pr-20 text-sm"
+            placeholder="Ask Assistant, use @ to include specific files..."
+            className="min-h-[42px] max-h-40 resize-none pr-24 text-sm border-border"
             disabled={isDisabled}
             data-testid="input-chat-message"
           />
           
-          <div className="absolute right-2 bottom-2 flex items-center gap-1">
+          <div className="absolute right-1 bottom-1 flex items-center gap-0.5">
             <Popover open={showFilePicker} onOpenChange={setShowFilePicker}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-8 w-8"
                   disabled={isDisabled || files.length === 0}
                   data-testid="button-mention-file"
                   type="button"
@@ -113,28 +96,30 @@ export function ChatInput({ onSend, onFileUpload, disabled }: ChatInputProps) {
                   <AtSign className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-56 p-1" align="end" side="top">
-                <div className="text-xs font-medium text-muted-foreground px-2 py-1">
-                  Mention a file
+              <PopoverContent className="w-64 p-1" align="end" side="top">
+                <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                  Add file context
                 </div>
                 {files.length > 0 ? (
-                  files.map((file) => (
-                    <button
-                      key={file.id}
-                      onClick={() => handleFileSelect(file.id, file.name)}
-                      className={cn(
-                        "w-full text-left px-2 py-1.5 text-sm rounded-sm hover-elevate",
-                        mentionedFiles.includes(file.id) && "bg-accent"
-                      )}
-                      data-testid={`button-select-file-${file.id}`}
-                      type="button"
-                    >
-                      <span className="font-mono text-xs">{file.name}</span>
-                    </button>
-                  ))
+                  <div className="max-h-64 overflow-auto">
+                    {files.map((file) => (
+                      <button
+                        key={file.id}
+                        onClick={() => handleFileSelect(file.id, file.name)}
+                        className={cn(
+                          "w-full text-left px-2 py-1.5 text-xs rounded-sm hover:bg-accent transition-colors",
+                          mentionedFiles.includes(file.id) && "bg-accent"
+                        )}
+                        data-testid={`button-select-file-${file.id}`}
+                        type="button"
+                      >
+                        <span className="font-mono">{file.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                    No files uploaded yet
+                  <div className="px-2 py-4 text-center text-xs text-muted-foreground">
+                    No files uploaded
                   </div>
                 )}
               </PopoverContent>
@@ -143,7 +128,7 @@ export function ChatInput({ onSend, onFileUpload, disabled }: ChatInputProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-8 w-8"
               onClick={onFileUpload}
               disabled={isDisabled}
               data-testid="button-upload-file"
@@ -157,19 +142,15 @@ export function ChatInput({ onSend, onFileUpload, disabled }: ChatInputProps) {
         <Button
           onClick={handleSend}
           disabled={!message.trim() || isDisabled}
-          className="h-9"
+          size="sm"
+          className="h-[42px] px-4"
           data-testid="button-send-message"
           type="button"
         >
           {isStreaming ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <>
-              <Send className="h-4 w-4 mr-1" />
-              <span className="text-xs text-primary-foreground/70">
-                {navigator.platform.includes("Mac") ? "⌘↵" : "Ctrl+↵"}
-              </span>
-            </>
+            <Send className="h-4 w-4" />
           )}
         </Button>
       </div>

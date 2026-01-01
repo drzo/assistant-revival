@@ -37,6 +37,19 @@ Preferred communication style: Simple, everyday language.
 - **Features**: Chat completions with streaming, image generation capabilities
 - **Batch Processing**: Custom utilities for rate-limited batch operations with retries
 
+### Mastra Multi-Agent Framework
+- **Location**: `server/replit_integrations/mastra/`
+- **Agents**:
+  - `assistantAgent`: General purpose coding assistance
+  - `codeReviewerAgent`: Code quality and best practices reviews
+  - `debuggerAgent`: Problem diagnosis and troubleshooting
+- **Tools**: File reading, directory listing, code analysis
+- **Client Hook**: `client/src/hooks/use-mastra.ts`
+- **API Endpoints**:
+  - `POST /api/mastra/chat` - Chat with a Mastra agent
+  - `GET /api/mastra/agents` - List available agents
+  - `GET /api/mastra/tools` - List available tools
+
 ### Key Design Decisions
 
 1. **Shared Schema Pattern**: Types and schemas defined in `shared/` directory are used by both client and server, ensuring type safety across the stack.

@@ -3,10 +3,18 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { registerChatRoutes } from "./replit_integrations/chat";
-import { registerChatRoutesWithAI } from "./replit_integrations/chat/routes-new";
-import { createProviderManager } from "./ai";
 import { registerImageRoutes } from "./replit_integrations/image";
+import { registerBatchRoutes } from "./replit_integrations/batch";
 import { registerAssistantPromptRoutes } from "./replit_integrations/assistant-prompts";
+import { registerOrgPersonaRoutes } from "./replit_integrations/org-persona";
+import { seedOrgPersona } from "./replit_integrations/org-persona/seed";
+import { initializeDatabase } from "./db"; // Import database initialization
+import { seedDefaultPrompts } from "./replit_integrations/assistant-prompts/seed"; // Import seed function
+import { importPromptsFromFile } from "./replit_integrations/assistant-prompts/import-from-file";
+import { registerScrapingRoutes } from "./replit_integrations/scraping";
+import screenshotRoutes from "./replit_integrations/screenshot/routes";
+import creditRoutes from "./replit_integrations/credits/routes";
+import { registerMastraRoutes } from "./replit_integrations/mastra";
 
 const app = express();
 const httpServer = createServer(app);
@@ -65,32 +73,32 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await registerRoutes(httpServer, app);
-  
-  // Initialize AI Provider Manager
-  let aiManager;
-  try {
-    aiManager = await createProviderManager();
-    // Use new chat routes with AI manager
-    registerChatRoutesWithAI(app, aiManager);
-  } catch (error) {
-    console.error("Failed to initialize AI provider manager:", error);
-    console.log("Falling back to legacy OpenAI-only routes");
-    // Fallback to old routes if AI manager fails
-    registerChatRoutes(app);
-  }
-  
-  registerImageRoutes(app);
-  registerAssistantPromptRoutes(app);
+  // Initialize database and seed default data
+  await initializeDatabase(); // Call database initialization
+  await seedDefaultPrompts(); // Call seed function
+  await importPromptsFromFile(); // Import prompts from file
 
-  // Seed default assistant prompt
-  const { seedDefaultPrompt } = await import("./replit_integrations/assistant-prompts/seed");
-  await seedDefaultPrompt();
-  
-  // Seed all assistant prompts from imported data (run once)
-  // Uncomment the following lines to import all prompts:
-  // const { seedAllPrompts } = await import("./replit_integrations/assistant-prompts/seed-all");
-  // await seedAllPrompts();
+  // Seed organizational persona
+  await seedOrgPersona();
+
+  await registerRoutes(httpServer, app);
+  registerChatRoutes(app);
+  registerImageRoutes(app);
+  registerBatchRoutes(app);
+  registerAssistantPromptRoutes(app);
+  registerOrgPersonaRoutes(app);
+  registerScrapingRoutes(app);
+  app.use("/api/screenshot", screenshotRoutes);
+  app.use("/api/credits", creditRoutes);
+
+  const checkpointRoutes = (await import("./replit_integrations/checkpoints/routes")).default;
+  app.use("/api", checkpointRoutes);
+
+  // Seed default assistant prompt (this is now redundant due to the seedDefaultPrompts call above)
+  // const { seedDefaultPrompt } = await import("./replit_integrations/assistant-prompts/seed");
+  // await seedDefaultPrompt();
+
+  registerMastraRoutes(app);
 
   // start server
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -102,7 +110,7 @@ app.use((req, res, next) => {
   });
 
   // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
+  // setting up all the routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);

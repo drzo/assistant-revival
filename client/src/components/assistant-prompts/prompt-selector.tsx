@@ -12,8 +12,8 @@ import type { AssistantPrompt } from "@shared/schema";
 
 interface PromptSelectorProps {
   prompts: AssistantPrompt[];
-  selectedPromptId: string | null;
-  onSelectPrompt: (id: string) => void;
+  selectedPromptId: number | null;
+  onSelectPrompt: (id: number) => void;
 }
 
 export function PromptSelector({

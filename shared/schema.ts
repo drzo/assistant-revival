@@ -81,7 +81,6 @@ export const assistantPromptSchema = z.object({
   name: z.string(),
   description: z.string(),
   instructions: z.string(),
-  isDefault: z.boolean().optional().default(false),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -89,5 +88,114 @@ export const assistantPromptSchema = z.object({
 export type AssistantPrompt = z.infer<typeof assistantPromptSchema>;
 export type InsertAssistantPrompt = Omit<AssistantPrompt, "id" | "createdAt" | "updatedAt">;
 
+// Re-export all tables from models
 export * from "./models/chat";
 export * from "./models/assistant-prompt";
+export * from "./models/org-persona-ext";
+export * from "./models/credit-usage";
+
+// Import for convenience
+import { conversations, messages } from "./models/chat";
+import { assistantPrompts } from "./models/assistant-prompt";
+import {
+  orgParticipants,
+  orgHyperedges,
+  orgMemory,
+  orgArtifacts,
+  orgPersona,
+  orgBehaviorHistory,
+  orgSkillsets,
+  orgNetworkTopology,
+} from "./models/org-persona-ext";
+import { creditUsage } from "./models/credit-usage";
+
+// Export combined schema object for Drizzle
+export const schema = {
+  conversations,
+  messages,
+  assistantPrompts,
+  orgParticipants,
+  orgHyperedges,
+  orgMemory,
+  orgArtifacts,
+  orgPersona,
+  orgBehaviorHistory,
+  orgSkillsets,
+  orgNetworkTopology,
+  creditUsage,
+};
+
+export interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  mentionedFiles?: string[];
+  createdAt: string;
+  metadata?: {
+    shellCommands?: string[];
+    fileEdits?: Array<{
+      file: string;
+      added: number;
+      removed: number;
+    }>;
+  };
+}
+
+export interface Session {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Checkpoint {
+  id: string;
+  sessionId: string;
+  messageId: string;
+  description: string;
+  files: CodeFile[];
+  createdAt: string;
+}
+
+export interface CodeFile {
+  id: string;
+  name: string;
+  content: string;
+  language?: string;
+  size?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CodeChange {
+  id: string;
+  fileId: string;
+  fileName: string;
+  oldContent: string;
+  newContent: string;
+  description: string;
+}
+
+export interface AssistantPrompt {
+  id: number;
+  name: string;
+  instructions: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Conversation {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  conversationId: number;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+}

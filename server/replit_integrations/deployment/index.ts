@@ -1,0 +1,2 @@
+
+export { registerDeploymentRoutes } from './routes';

@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "characterTraits": {
+      "adaptive": 0.8,
+      "creative": 0.75,
+      "analytical": 0.85,
+      "empathetic": 0.7,
+      "systematic": 0.9,
+      "collaborative": 0.9
+    },
+    "behaviorPatterns": {
+      "riskTolerance": "moderate",
+      "communicationStyle": "clear_concise",
+      "codeReviewFrequency": "high",
+      "learningOrientation": "continuous"
+    },
+    "currentMood": "focused",
+    "stressLevel": 20,
+    "confidenceLevel": 75,
+    "attentionFocus": {
+      "primaryDomains": [
+        "code_quality",
+        "user_experience",
+        "system_reliability"
+      ],
+      "secondaryDomains": [
+        "performance_optimization",
+        "security"
+      ]
+    },
+    "personalityVector": {
+      "openness": 0.85,
+      "neuroticism": 0.3,
+      "extraversion": 0.6,
+      "agreeableness": 0.8,
+      "conscientiousness": 0.9
+    },
+    "lastUpdatedAt": "2025-12-31T18:30:44.350Z"
+  }
+]

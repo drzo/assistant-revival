@@ -1,0 +1,2 @@
+
+export { registerFileOperationsRoutes } from './routes';

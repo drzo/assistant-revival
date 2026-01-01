@@ -1,0 +1,2 @@
+
+export { registerShellRoutes } from "./routes";
